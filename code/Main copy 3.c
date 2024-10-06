@@ -19,46 +19,62 @@
 // };
 // static u8 Digital_Number_Buffer[8];
 // // 多为数码管
-// void main() {
-//  Digital_Number(654321);
-//     while (1) {
-//        Digital_Show_Refresh();
+// void main()
+// {
+//     u16 i;
+//     u16 j;
+//     for (i = 100; i >= 0; i--)
+//     {
+//         Digital_Number(i);
+//         for (j = 100; j >= 0; j--)
+//         {
+//             Digital_Show_Refresh();
+//             Delay100us(100);
+//         }
+
+//         if (i == 0)
+//         {
+//             // 复位
+//             i = 100;
+//         }
 //     }
 // }
 // /**
 //  * @brief 刷新代码表
-//  * 
+//  *
 //  */
-// void Digital_Show_Refresh(){
-// u16 i;
-//  for (i = 0; i < 8; i++) {
-//             Static_Digital_Tube1(i,Digital_Number_Buffer[i]); // 使用 s_digit_codes[i]，避免越界
-//             Delay100us(1);
-//         }
-
+// void Digital_Show_Refresh()
+// {
+//     u16 i;
+//     for (i = 0; i < 8; i++)
+//     {
+//         Static_Digital_Tube1(i, Digital_Number_Buffer[i]); // 使用 s_digit_codes[i]，避免越界
+//     }
 // }
 
 // /**
 //  * @brief 将每个位置要显示的数字扒到数组中存取来
-//  * 
+//  *
 //  * @param digtail 要显示的数
 //  */
-// void Digital_Number(int digtail) {
+// void Digital_Number(int digtail)
+// {
 //     u16 i = 0;
-    
+
 //     // 依次分解数字，存入显示缓冲区
-//     while (digtail > 0 && i < 8) {
-//         Digital_Number_Buffer[i] = digtail % 10;  // 取当前数字的个位
-//         digtail /= 10;  // 去掉最低位
+//     while (digtail > 0 && i < 8)
+//     {
+//         Digital_Number_Buffer[i] = digtail % 10; // 取当前数字的个位
+//         digtail /= 10;                           // 去掉最低位
 //         i++;
 //     }
-    
+
 //     // 对于小于8位的数字，未使用的位置将保持显示0
-//     for (; i < 8; i++) {
+//     for (; i < 8; i++)
+//     {
 //         Digital_Number_Buffer[i] = 0;
 //     }
 // }
-
 
 // /**
 //  * @brief 控制数码管显示多少
