@@ -1,7 +1,10 @@
 {
     "editor.formatOnSave": true,
     "clang-format.executable": "/absolute/path/to/clang-format",
+    "editor.fontSize": 15,
     "files.associations": {
-        "MAIN.C": "cpp"
+        "MAIN.C": "cpp",
+        "stc89c5xrc.h": "c",
+        "STC89C5xRC.H": "cpp"
     }
 }

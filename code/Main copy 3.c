@@ -1,3 +1,5 @@
+/* 显示四位数 */
+
 // #include "STC89C5xRC.H"
 // typedef unsigned int u16;
 // typedef unsigned char u8;

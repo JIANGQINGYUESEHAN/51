@@ -1,10 +1,20 @@
+/* 独立安按键加数 */
+
 #include "STC89C5xRC.H"
+
+#define SW1 P30
+#define SW2 P31
+#define SW3 P32
+#define SW4 P33
 typedef unsigned int u16;
 typedef unsigned char u8;
+
 void Static_Digital_Tube1(u16 a, u8 b);
-void Delay100us(unsigned int a);
-void Digital_Number(int digtail);
+
 void Digital_Show_Refresh();
+void Delay100us(int a);
+bit Press2();
+
 static u8 s_digit_codes[10] = {
     0x3F, // 0
     0x06, // 1
@@ -17,94 +27,101 @@ static u8 s_digit_codes[10] = {
     0x7F, // 8
     0x6F  // 9
 };
-static u8 Digital_Number_Buffer[8];
-// 多为数码管
+
+static u8 Number = 1;
+static u8 Number_Buffer[8];
 void main()
 {
-    u16 i;
-    u16 j;
-    for (i = 100; i >= 0; i--)
+    if (Press2())
     {
-        Digital_Number(i);
-        for (j = 100; j >= 0; j--)
-        {
-            Digital_Show_Refresh();
-            Delay100us(100);
-        }
-
-        if (i == 0)
-        {
-            // 复位
-            i = 100;
-        }
-    }
-}
-/**
- * @brief 刷新代码表
- *
- */
-void Digital_Show_Refresh()
-{
-    u16 i;
-    for (i = 0; i < 8; i++)
-    {
-        Static_Digital_Tube1(i, Digital_Number_Buffer[i]); // 使用 s_digit_codes[i]，避免越界
     }
 }
 
-/**
- * @brief 将每个位置要显示的数字扒到数组中存取来
- *
- * @param digtail 要显示的数
- */
 void Digital_Number(int digtail)
 {
-    u16 i = 0;
-
-    // 依次分解数字，存入显示缓冲区
-    while (digtail > 0 && i < 8)
+    Number++;
+    // 然后将该数转换为十六进制数
+   
+    while (Number != 0)
     {
-        Digital_Number_Buffer[i] = digtail % 10; // 取当前数字的个位
-        digtail /= 10;                           // 去掉最低位
-        i++;
-    }
+        int temp = Number % 16; // 取余数
 
-    // 对于小于8位的数字，未使用的位置将保持显示0
-    for (; i < 8; i++)
-    {
-        Digital_Number_Buffer[i] = 0;
+        // 将余数转换为对应的十六进制字符
+        if (temp < 10)
+        {
+            hexNum[i] = temp + 48; // 0-9的ASCII值
+        }
+        else
+        {
+            hexNum[i] = temp + 55; // A-F的ASCII值 (A是65，所以55加上10开始是A)
+        }
+
+        Number = Number / 16; // 除以16
+        i++;                  // 继续向前存储位
     }
+    // 这样 Number_Buffer都是二进制数, // 然后将该数进行显示
+}
+void Digital_Show_Refresh()
+{
 }
 
-/**
- * @brief 控制数码管显示多少
- *
- * @param a 范围为0~7,表示第几个显示
- * @param b 范围为0~7,表示显示几
- */
 void Static_Digital_Tube1(u16 a, u8 b)
 {
-    /* 每次片选都置空 */
-    P1 = 0;
-    /* 片选 */
-    P1 = P1 & 0xC7;
-    a <<= 3;
-    P1 = P1 | a;
-    /* D段选 */
+    P2 = 1;
+    // 先与操作，将P2.2, P2.3, P2.4都置为0
+    P2 = P2 & 0xC7;
+    // 11000111, 清除P2的2到4位
+
+    // 将a左移两位，确保它对准P2.2~P2.4的位置
+    a <<= 2;
+
+    // 将a的值与P2的值进行或运算，赋值给P2
+    P2 = P2 | a;
+
+    /* 进行段选 */
     P0 = b;
 }
+
 /**
- * @brief 延迟函数
+ *  按键 按下去是 1 抬起是0
+ * @brief  延时消抖
  *
- * @param a  延迟多少毫秒
+ * @param P30  传过哪个按钮
+ * @return bit  返回真假
  */
-void Delay100us(unsigned int a) //@11.0592MHz
+
+bit Press2()
+{
+    // 如果按键没有按下则返回0
+    if (SW2 == 1)
+    {
+        return 0;
+    }
+    /* 延迟一会， */
+    Delay100us(10);
+    // 等待按键按起
+    while (1)
+    {
+        if (SW2 == 1)
+        {
+            Delay100us(10);
+            if (SW2 == 1)
+            {
+                Delay100us(10);
+                return 1;
+            }
+        }
+    }
+}
+
+void Delay100us(int a) //@11.0592MHz
 {
 
-    unsigned char data i, j;
-
-    while (a)
+    while (a < 0)
     {
+
+        unsigned char data i, j;
+
         i = 2;
         j = 15;
         do
