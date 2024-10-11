@@ -20,7 +20,8 @@
             "*.cpp": "cpp",
             "*.cxx": "cpp",
             "*.cc": "cpp",
-            "STC89C5xRC.H": "cpp"
+            "STC89C5xRC.H": "cpp",
+            "STDIO.H": "cpp"
         },
         "files.autoGuessEncoding": true,
         "EIDE.ARM.Option.AutoGenerateRTE_Components": false,

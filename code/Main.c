@@ -1,133 +1,87 @@
-/* 独立安按键加数 */
 
-#include "STC89C5xRC.H"
+#include <STC89C5xRC.H>
+/* 定时器中断 函数调用版 */
 
-#define SW1 P30
-#define SW2 P31
-#define SW3 P32
-#define SW4 P33
-typedef unsigned int u16;
 typedef unsigned char u8;
+typedef unsigned int u16;
 
-void Static_Digital_Tube1(u16 a, u8 b);
+typedef void (*Callback_Function)(void);
 
-void Digital_Show_Refresh();
-void Delay100us(int a);
-bit Press2();
+static u16 Time_Counter = 0;
+#define Callback_Function_Max_Count = 4;
+#define FOSC                        11059200                   // 晶振频率
+#define NT                          12                         // 单片机的工作周期为12T
+#define T1MS                        (65536 - FOSC / 12 / 1000) // 十六位二进制的最大数为 65536 减去该值所走完的时间就是 1ms
+#define Callback_Function_Array     [Callback_Function_Max_Count];
+void init_Interrupt()
+{
+    EA  = 1;
+    ET0 = 1;
 
-static u8 s_digit_codes[10] = {
-    0x3F, // 0
-    0x06, // 1
-    0x5B, // 2
-    0x4F, // 3
-    0x66, // 4
-    0x6D, // 5
-    0x7D, // 6
-    0x07, // 7
-    0x7F, // 8
-    0x6F  // 9
-};
+    TCON = TCON & 11110000;
+    TCON = TCON | 11110001;
 
-static u8 Number = 1;
-static u8 Number_Buffer[8];
+    TL0 = T1MS;
+    TH0 = T1MS >> 8;
+
+    /* 定时器0的开关 */
+    TR0 = 1;
+    // 函数初始化
+    u8 i;
+    for (i = 0; i < Callback_Function_Max_Count; i++)
+    {
+        Callback_Function_Array[i] = NULL;
+    }
+}
+
+// 初始化回调函数
+bit Callback_Function_Initialization(Callback_Function callback)
+{
+    u8 i;
+    for (i = 0; i < Callback_Function_Max_Count; i++)
+    {
+        if (Callback_Function_Array[i] == NULL)
+        {
+            Callback_Function_Array[i] = callback;
+            return 1; // 成功注册
+        }
+    }
+    return 0; // 注册失败，数组已满
+}
+// 逆初始化
+
+bit Dri_Timer0_DeregisterCallback(Callback_Function callback)
+{
+    u8 i;
+    for (i = 0; i < Callback_Function_Max_Count; i++)
+    {
+        if (Callback_Function_Array[i] == callback)
+        {
+            Callback_Function_Array[i] = NULL;
+            return 1;
+        }
+    }
+    return 0;
+}
 void main()
 {
-    if (Press2())
-    {
-    }
+
+    init_Interrupt();
+    while (1);
 }
 
-void Digital_Number(int digtail)
+void Interrupt_doing1() interrupt 1 // 中断码芯片手册可查
 {
-    Number++;
-    // 然后将该数转换为十六进制数
-   
-    while (Number != 0)
+    Time_Counter++;
+    TL0 = T1MS;
+    TH0 = T1MS >> 8;
+    // 调用回调函数
+    u8 i;
+    for (i = 0; i < Callback_Function_Max_Count; i++)
     {
-        int temp = Number % 16; // 取余数
-
-        // 将余数转换为对应的十六进制字符
-        if (temp < 10)
+        if (Callback_Function_Array[i] == callback)
         {
-            hexNum[i] = temp + 48; // 0-9的ASCII值
+            Callback_Function_Array[i]();
         }
-        else
-        {
-            hexNum[i] = temp + 55; // A-F的ASCII值 (A是65，所以55加上10开始是A)
-        }
-
-        Number = Number / 16; // 除以16
-        i++;                  // 继续向前存储位
-    }
-    // 这样 Number_Buffer都是二进制数, // 然后将该数进行显示
-}
-void Digital_Show_Refresh()
-{
-}
-
-void Static_Digital_Tube1(u16 a, u8 b)
-{
-    P2 = 1;
-    // 先与操作，将P2.2, P2.3, P2.4都置为0
-    P2 = P2 & 0xC7;
-    // 11000111, 清除P2的2到4位
-
-    // 将a左移两位，确保它对准P2.2~P2.4的位置
-    a <<= 2;
-
-    // 将a的值与P2的值进行或运算，赋值给P2
-    P2 = P2 | a;
-
-    /* 进行段选 */
-    P0 = b;
-}
-
-/**
- *  按键 按下去是 1 抬起是0
- * @brief  延时消抖
- *
- * @param P30  传过哪个按钮
- * @return bit  返回真假
- */
-
-bit Press2()
-{
-    // 如果按键没有按下则返回0
-    if (SW2 == 1)
-    {
-        return 0;
-    }
-    /* 延迟一会， */
-    Delay100us(10);
-    // 等待按键按起
-    while (1)
-    {
-        if (SW2 == 1)
-        {
-            Delay100us(10);
-            if (SW2 == 1)
-            {
-                Delay100us(10);
-                return 1;
-            }
-        }
-    }
-}
-
-void Delay100us(int a) //@11.0592MHz
-{
-
-    while (a < 0)
-    {
-
-        unsigned char data i, j;
-
-        i = 2;
-        j = 15;
-        do
-        {
-            while (--j);
-        } while (--i);
-        a--;
     }
 }
